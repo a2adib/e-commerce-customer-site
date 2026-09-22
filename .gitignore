@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.next/
+__pycache__/
+*.pyc
+.env
+.env.local
+*.egg-info/
+.venv/
+venv/
+.DS_Store
+*.sqlite3
+firebase-service-account.json
+uploads/
+coverage/
+.turbo/
