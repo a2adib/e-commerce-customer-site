@@ -9,6 +9,7 @@ import { QuantityInput } from "@/components/product/QuantityInput";
 import { useCart } from "@/lib/hooks/useCart";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { ProductCard } from "@/components/product/ProductCard";
+import { ProductReviews } from "@/components/product/ProductReviews";
 import {
   Heart,
   ShoppingBag,
@@ -204,6 +205,9 @@ export function ProductDetailView({
           </div>
         </div>
       </div>
+
+      {/* Customer Reviews Section */}
+      <ProductReviews productId={product.public_id} productSlug={product.slug} />
 
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (

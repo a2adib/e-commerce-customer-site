@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { ProductForm } from "./components/products/ProductForm";
 import { ProductList } from "./components/products/ProductList";
+import { OrderList } from "./components/orders/OrderList";
 import { CategoryCreatePage } from "./components/categories/CategoryCreatePage";
 import { CMSConfigPage } from "./components/cms/CMSConfigPage";
 import { LoginPage } from "./components/auth/LoginPage";
@@ -28,6 +29,7 @@ export default function App() {
         <Route index element={<Navigate to="products" replace />} />
         <Route path="products" element={<ProductList />} />
         <Route path="products/new" element={<ProductForm />} />
+        <Route path="orders" element={<OrderList />} />
         <Route path="categories/new" element={<CategoryCreatePage />} />
         <Route path="cms" element={<CMSConfigPage />} />
       </Route>

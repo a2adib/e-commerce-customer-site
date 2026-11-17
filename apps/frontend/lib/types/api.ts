@@ -195,6 +195,7 @@ export interface Order {
   total: number;
   shipping_snapshot: ShippingAddressSnapshot;
   note?: string | null;
+  coupon_code?: string | null;
   items: OrderItem[];
   status_history: OrderStatusHistory[];
   created_at: string;
@@ -206,6 +207,7 @@ export interface CheckoutPayload {
   phone?: string;
   note?: string;
   payment_method?: "cod";
+  coupon_code?: string;
 }
 
 // Home Page CMS Section Definitions
@@ -316,4 +318,44 @@ export interface HomePageData {
   sections: HomeSection[];
   updated_at: string;
   published_at?: string | null;
+}
+
+// Coupons
+export interface CouponValidatePayload {
+  code: string;
+  subtotal: number;
+}
+
+export interface CouponValidateResponse {
+  valid: boolean;
+  code: string;
+  discount_type: string;
+  discount_value: number;
+  discount_amount: number;
+  new_subtotal: number;
+  message: string;
+}
+
+// Reviews
+export interface Review {
+  public_id: string;
+  user_name: string;
+  rating: number;
+  title?: string | null;
+  comment: string;
+  is_verified_purchase: boolean;
+  created_at: string;
+}
+
+export interface ReviewCreatePayload {
+  rating: number;
+  title?: string;
+  comment: string;
+}
+
+export interface ProductReviewsSummary {
+  avg_rating: number;
+  total_reviews: number;
+  rating_distribution: Record<string, number>;
+  reviews: Review[];
 }

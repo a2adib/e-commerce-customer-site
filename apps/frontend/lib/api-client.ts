@@ -15,6 +15,11 @@ import {
   Order,
   CheckoutPayload,
   HomePageData,
+  CouponValidatePayload,
+  CouponValidateResponse,
+  Review,
+  ReviewCreatePayload,
+  ProductReviewsSummary,
 } from "./types/api";
 
 const API_BASE_URL =
@@ -333,5 +338,45 @@ export const api = {
         method: "POST",
       });
     },
+    async track(orderNumber: string, phone: string): Promise<Order> {
+      return fetchWithAuth<Order>(
+        `/orders/track?order_number=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`
+      );
+    },
+  },
+
+  // Coupons
+  coupons: {
+    async validate(payload: CouponValidatePayload): Promise<CouponValidateResponse> {
+      return fetchWithAuth<CouponValidateResponse>("/coupons/validate", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    },
+  },
+
+  // Reviews
+  reviews: {
+    async getForProduct(slugOrId: string): Promise<ProductReviewsSummary> {
+      return fetchWithAuth<ProductReviewsSummary>(
+        `/products/${slugOrId}/reviews`,
+        { next: { revalidate: 30 } } as any
+      );
+    },
+    async submit(publicId: string, payload: ReviewCreatePayload): Promise<Review> {
+      return fetchWithAuth<Review>(`/products/${publicId}/reviews`, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+    },
+  },
+
+  // Settings
+  settings: {
+    async get(): Promise<{ public_id: string; brand_name: string; logo_url?: string | null; updated_at: string }> {
+      return fetchWithAuth<{ public_id: string; brand_name: string; logo_url?: string | null; updated_at: string }>("/settings", {
+        next: { revalidate: 60 },
+      } as any);
+    }
   },
 };

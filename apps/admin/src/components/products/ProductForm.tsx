@@ -72,7 +72,7 @@ export function ProductForm() {
     images.forEach((img) => formData.append("images", img.file));
 
     try {
-      const product = await apiClient("/api/admin/products", {
+      const product = await apiClient<{ name: string }>("/api/admin/products", {
         method: "POST",
         body: formData,
       });

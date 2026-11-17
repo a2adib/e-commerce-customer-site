@@ -10,6 +10,7 @@ import { api } from "@/lib/api-client";
 import { formatPrice } from "@/lib/utils";
 import { AddressSelector } from "@/components/checkout/AddressSelector";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { CouponValidateResponse } from "@/lib/types/api";
 import {
   ShieldCheck,
   Truck,
@@ -18,6 +19,8 @@ import {
   Loader2,
   Lock,
   ArrowRight,
+  Tag,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -30,6 +33,9 @@ export default function CheckoutPage() {
   const [orderNote, setOrderNote] = useState("");
   const [stockError, setStockError] = useState<string | null>(null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidateResponse | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   // Protected route check
   useEffect(() => {
@@ -39,7 +45,36 @@ export default function CheckoutPage() {
   }, [isAuthenticated, isAuthLoading, router]);
 
   const deliveryCharge = items.length > 0 ? 60 : 0;
-  const totalAmount = subtotal + deliveryCharge;
+  const discountAmount = appliedCoupon ? appliedCoupon.discount_amount : 0;
+  const totalAmount = Math.max(0, subtotal - discountAmount + deliveryCharge);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setIsValidatingCoupon(true);
+    try {
+      const res = await api.coupons.validate({
+        code: couponCode.trim(),
+        subtotal,
+      });
+      if (res.valid) {
+        setAppliedCoupon(res);
+        toast.success(res.message || "Coupon applied successfully!");
+      } else {
+        toast.error(res.message || "Invalid coupon");
+        setAppliedCoupon(null);
+      }
+    } catch (err: any) {
+      toast.error(err.detail || err.message || "Failed to validate coupon");
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+  };
 
   const handlePlaceOrder = async () => {
     setStockError(null);
@@ -61,6 +96,7 @@ export default function CheckoutPage() {
         address_id: selectedAddressId,
         note: orderNote.trim() || undefined,
         payment_method: "cod",
+        coupon_code: appliedCoupon ? appliedCoupon.code : undefined,
       });
 
       // Clear the local cart state since backend checkout clears it
@@ -229,14 +265,69 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* Promo / Coupon Box */}
+            <div className="mt-4 border-t pt-4">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <div>
+                      <p className="font-bold text-emerald-800 dark:text-emerald-300">
+                        {appliedCoupon.code} Applied
+                      </p>
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                        {appliedCoupon.discount_type === "percentage"
+                          ? `${appliedCoupon.discount_value}% OFF`
+                          : `${formatPrice(appliedCoupon.discount_value)} OFF`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="rounded p-1 text-muted-foreground hover:text-foreground transition"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Coupon / Promo Code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      className="w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-xs uppercase outline-none transition focus:border-primary"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={isValidatingCoupon || !couponCode.trim()}
+                    className="rounded-md border bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50 transition"
+                  >
+                    {isValidatingCoupon ? "Checking..." : "Apply"}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Calculations */}
-            <div className="mt-6 space-y-2 border-t pt-4 text-xs">
+            <div className="mt-4 space-y-2 border-t pt-4 text-xs">
               <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal</span>
                 <span className="font-semibold text-foreground">
                   {formatPrice(subtotal)}
                 </span>
               </div>
+              {appliedCoupon && discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                  <span>Discount ({appliedCoupon.code})</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-muted-foreground">
                 <span>Delivery Charge</span>
                 <span className="font-semibold text-foreground">

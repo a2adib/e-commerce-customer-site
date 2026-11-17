@@ -37,17 +37,21 @@ export async function apiClient<T = unknown>(
     headers["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const normalizedPath = path.startsWith("/api/") ? path.replace(/^\/api/, "") : path;
+  const res = await fetch(`${API_BASE}${normalizedPath}`, { ...options, headers });
 
   if (!res.ok) {
     let detail = "An error occurred";
     try {
       const err = await res.json();
-      detail = err.detail || detail;
+      detail = err.detail || err.message || detail;
     } catch { /* ignore */ }
     throw new ApiError(res.status, detail);
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json();
+  const json = await res.json();
+  return (json && typeof json === "object" && "data" in json && json.data !== undefined
+    ? json.data
+    : json) as T;
 }

@@ -18,6 +18,8 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useCart } from "@/lib/hooks/useCart";
 import { useWishlist } from "@/lib/hooks/useWishlist";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 import { MiniCartDrawer } from "../cart/MiniCartDrawer";
 
 export function Header() {
@@ -30,6 +32,11 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.settings.get(),
+  });
 
   useEffect(() => {
     const q = searchParams.get("search");
@@ -59,9 +66,13 @@ export function Header() {
             </button>
 
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-black tracking-wider uppercase text-foreground">
-                STORE<span className="text-muted-foreground">FRONT</span>
-              </span>
+              {settings?.logo_url ? (
+                <img src={settings.logo_url} alt={settings?.brand_name || "Storefront"} className="h-8 object-contain" />
+              ) : (
+                <span className="text-xl font-black tracking-wider uppercase text-foreground">
+                  {settings?.brand_name || "STOREFRONT"}
+                </span>
+              )}
             </Link>
 
             {/* Desktop Nav Links */}
@@ -83,6 +94,12 @@ export function Header() {
                 className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
               >
                 Featured
+              </Link>
+              <Link
+                href="/track-order"
+                className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              >
+                Track Order
               </Link>
             </nav>
           </div>
@@ -263,6 +280,13 @@ export function Header() {
                 className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
               >
                 All Products
+              </Link>
+              <Link
+                href="/track-order"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              >
+                Track Order
               </Link>
               <Link
                 href="/wishlist"

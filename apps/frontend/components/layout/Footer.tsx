@@ -3,8 +3,15 @@
 import React from "react";
 import Link from "next/link";
 import { ShieldCheck, Truck, RotateCcw, Headphones } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 
 export function Footer() {
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.settings.get(),
+  });
+
   return (
     <footer className="mt-auto border-t bg-muted/20">
       {/* Features Bar */}
@@ -58,9 +65,13 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <span className="text-lg font-black tracking-wider uppercase">
-              STORE<span className="text-muted-foreground">FRONT</span>
-            </span>
+            {settings?.logo_url ? (
+              <img src={settings.logo_url} alt={settings?.brand_name || "Storefront"} className="h-8 object-contain" />
+            ) : (
+              <span className="text-lg font-black tracking-wider uppercase text-foreground">
+                {settings?.brand_name || "STOREFRONT"}
+              </span>
+            )}
             <p className="text-xs text-muted-foreground leading-relaxed">
               Curated premium lifestyle and streetwear apparel designed for comfort, style, and everyday expression.
             </p>
@@ -105,8 +116,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/track-order" className="hover:text-foreground transition">
+                  Track Order
+                </Link>
+              </li>
+              <li>
                 <Link href="/account/orders" className="hover:text-foreground transition">
-                  Order Tracking
+                  Order History
                 </Link>
               </li>
               <li>
@@ -146,7 +162,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t pt-8 text-center text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} STOREFRONT. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {settings?.brand_name || "STOREFRONT"}. All rights reserved.</p>
         </div>
       </div>
     </footer>

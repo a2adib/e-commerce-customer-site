@@ -3,6 +3,7 @@ import { useAuthStore } from "../../store/auth";
 
 const navItems = [
   { label: "Products", path: "/admin/products" },
+  { label: "Orders", path: "/admin/orders" },
   { label: "Categories", path: "/admin/categories/new" },
   { label: "CMS", path: "/admin/cms" },
 ];
